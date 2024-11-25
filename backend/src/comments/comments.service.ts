@@ -5,6 +5,7 @@ import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { PostsService } from '../posts/posts.service';
+import { WebsocketGateway } from '../websocket/websocket.gateway';
 
 @Injectable()
 export class CommentsService {
@@ -12,6 +13,7 @@ export class CommentsService {
     @InjectRepository(Comment)
     private commentsRepository: Repository<Comment>,
     private postsService: PostsService,
+    private websocketGateway: WebsocketGateway,
   ) {}
 
   async create(userId: string, postId: string, createCommentDto: CreateCommentDto): Promise<Comment> {
@@ -21,7 +23,12 @@ export class CommentsService {
       user: { id: userId },
       post: { id: postId },
     });
-    return this.commentsRepository.save(comment);
+    const savedComment = await this.commentsRepository.save(comment);
+
+    // Notify post owner about new comment
+    await this.websocketGateway.notifyNewComment(post.user.id, savedComment);
+
+    return savedComment;
   }
 
   async findAll(postId: string): Promise<Comment[]> {
