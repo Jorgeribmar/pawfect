@@ -13,7 +13,7 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     const existingUser = await this.findByEmail(createUserDto.email);
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -25,14 +25,15 @@ export class UsersService {
       password: hashedPassword,
     });
 
-    await this.usersRepository.save(user);
-    delete user.password;
-    return user;
+    const savedUser = await this.usersRepository.save(user);
+    const { password, ...result } = savedUser;
+    return result;
   }
 
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({
       relations: ['pets'],
+      select: ['id', 'name', 'email', 'avatar', 'bio', 'createdAt', 'updatedAt'],
     });
   }
 
@@ -40,6 +41,7 @@ export class UsersService {
     const user = await this.usersRepository.findOne({
       where: { id },
       relations: ['pets'],
+      select: ['id', 'name', 'email', 'avatar', 'bio', 'createdAt', 'updatedAt'],
     });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -54,22 +56,35 @@ export class UsersService {
 
     if (includePassword) {
       queryBuilder.addSelect('user.password');
+    } else {
+      queryBuilder.select([
+        'user.id',
+        'user.name',
+        'user.email',
+        'user.avatar',
+        'user.bio',
+        'user.createdAt',
+        'user.updatedAt',
+      ]);
     }
 
     return queryBuilder.getOne();
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<Omit<User, 'password'>> {
     const user = await this.findOne(id);
     
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
     }
 
-    Object.assign(user, updateUserDto);
-    await this.usersRepository.save(user);
-    delete user.password;
-    return user;
+    const updatedUser = await this.usersRepository.save({
+      ...user,
+      ...updateUserDto,
+    });
+
+    const { password, ...result } = updatedUser;
+    return result;
   }
 
   async remove(id: string): Promise<void> {

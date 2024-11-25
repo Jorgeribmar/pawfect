@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Post } from '../../posts/entities/post.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Pet } from './pet.entity';
@@ -21,14 +22,15 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  @Column({ select: false })
+  @Column()
+  @Exclude()
   password: string;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatar?: string;
 
   @Column({ type: 'text', nullable: true })
-  bio: string;
+  bio?: string;
 
   @OneToMany(() => Pet, pet => pet.user)
   pets: Pet[];
@@ -40,10 +42,10 @@ export class User {
   comments: Comment[];
 
   @Column({ nullable: true })
-  googleId: string;
+  googleId?: string;
 
   @Column({ nullable: true })
-  facebookId: string;
+  facebookId?: string;
 
   @CreateDateColumn()
   createdAt: Date;

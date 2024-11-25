@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from './entities/user.entity';
+import { AuthenticatedRequest } from '../types/request';
 
 @ApiTags('users')
 @Controller('users')
@@ -26,7 +27,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, type: User })
-  getProfile(@Request() req) {
+  getProfile(@Request() req: AuthenticatedRequest) {
     return this.usersService.findOne(req.user.id);
   }
 
@@ -35,7 +36,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiResponse({ status: 200, type: User })
-  updateProfile(@Request() req, @Body() updateUserDto: UpdateUserDto) {
+  updateProfile(@Request() req: AuthenticatedRequest, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(req.user.id, updateUserDto);
   }
 
