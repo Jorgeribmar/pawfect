@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Box, Alert, Divider, Button } from '@mui/material';
+import { Container, Typography, Box, Alert, Divider, Button, CircularProgress } from '@mui/material';
 import { RefreshCw } from 'lucide-react';
 import { PostCard } from '../components/Post/PostCard';
 import { SearchBar } from '../components/Search/SearchBar';
@@ -7,7 +7,7 @@ import { SearchFilters } from '../components/Search/SearchFilters';
 import { useSearch } from '../hooks/useSearch';
 import { useFilteredPosts } from '../hooks/useFilteredPosts';
 import { useUrlFilters } from '../hooks/useUrlFilters';
-import { MOCK_POSTS } from '../data/mockData';
+import { usePosts } from '../hooks/usePosts';
 
 export const Home = () => {
   const {
@@ -18,8 +18,26 @@ export const Home = () => {
     clearFilters,
   } = useUrlFilters();
 
+  const { data: posts, isLoading, isError } = usePosts();
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 10 }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Container maxWidth="md" sx={{ mt: 10 }}>
+        <Alert severity="error">Failed to load posts. Please try again later.</Alert>
+      </Container>
+    );
+  }
+
   // First apply search
-  const searchResults = useSearch(MOCK_POSTS, searchQuery);
+  const searchResults = useSearch(posts || [], searchQuery);
   
   // Then apply filters to search results
   const filteredPosts = useFilteredPosts(searchResults, filters);

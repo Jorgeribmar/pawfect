@@ -23,7 +23,7 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, type: LoginResponseDto })
-  async login(@Request() req, @Body() loginDto: LoginDto): Promise<LoginResponseDto> {
+  async login(@Request() req: any, @Body() loginDto: LoginDto): Promise<LoginResponseDto> {
     return this.authService.login(req.user);
   }
 
@@ -31,7 +31,7 @@ export class AuthController {
   @Get('profile')
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get current user profile' })
-  getProfile(@Request() req) {
+  getProfile(@Request() req: any) {
     return req.user;
   }
 }
